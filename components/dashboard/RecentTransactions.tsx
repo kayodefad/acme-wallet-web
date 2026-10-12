@@ -2,10 +2,9 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import type { Transaction } from '@/types/api'
-import { Card, CardHeader, Drawer, Money } from '@/components/ui'
-import { TransactionRow } from '@/components/transactions'
+import { Card, CardHeader, Drawer } from '@/components/ui'
+import { TransactionDetails, TransactionRow } from '@/components/transactions'
 import { getTransactions } from '@/lib/api/endpoints'
-import { formatDateTime, TRANSACTION_STATUS_LABELS } from '@/lib/format'
 import styles from './RecentTransactions.module.css'
 
 export function RecentTransactions() {
@@ -38,20 +37,7 @@ export function RecentTransactions() {
       ))}
 
       <Drawer open={selected !== null} title="Transaction details" onClose={() => setSelected(null)}>
-        {selected && (
-          <dl className={styles.details}>
-            <dt>Reference</dt>
-            <dd>{selected.reference}</dd>
-            <dt>Amount</dt>
-            <dd>
-              <Money amount={selected.amount} currency={selected.currency} />
-            </dd>
-            <dt>Status</dt>
-            <dd>{TRANSACTION_STATUS_LABELS[selected.status]}</dd>
-            <dt>Date</dt>
-            <dd>{formatDateTime(selected.createdAt)}</dd>
-          </dl>
-        )}
+        {selected && <TransactionDetails transaction={selected} />}
       </Drawer>
     </Card>
   )
