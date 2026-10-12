@@ -1,4 +1,4 @@
-import type { ApiSuccess } from '@/types/api'
+import type { ApiErrorBody, ApiSuccess } from '@/types/api'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api'
 
@@ -13,6 +13,10 @@ export class ApiError extends Error {
   }
 }
 
+function isErrorBody(body: unknown): body is ApiErrorBody {
+  return typeof body === 'object' && body !== null && 'error' in body
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<ApiSuccess<T>> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
@@ -21,9 +25,16 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiSucc
       ...init.headers,
     },
   })
-  const body = await res.json()
-  console.log('[api]', path, body)
-  return body
+
+  // Error responses may not be JSON (e.g. a proxy's HTML 502), so don't let parsing mask the status.
+  const body: unknown = await res.json().catch(() => null)
+
+  if (!res.ok) {
+    if (isErrorBody(body)) throw new ApiError(res.status, body.error.code, body.error.message)
+    throw new ApiError(res.status, 'UNKNOWN_ERROR', `Request failed with status ${res.status}`)
+  }
+
+  return body as ApiSuccess<T>
 }
 
 export const api = {
