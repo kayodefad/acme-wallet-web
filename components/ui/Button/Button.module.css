@@ -59,7 +59,19 @@
   width: 100%;
 }
 
-.disabled {
+.button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.primary:disabled {
+  background: var(--color-primary);
+}
+
+.secondary:disabled {
+  background: var(--color-surface);
+}
+
+.ghost:disabled {
+  background: transparent;
 }
