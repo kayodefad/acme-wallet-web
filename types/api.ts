@@ -7,7 +7,19 @@ export const CURRENCIES: readonly Currency[] = ['NGN', 'USD', 'GHS']
 export type TransactionType =
   'deposit' | 'withdrawal' | 'transfer_in' | 'transfer_out' | 'conversion' | 'card_payment' | 'bill_payment'
 
+export const TRANSACTION_TYPES: readonly TransactionType[] = [
+  'deposit',
+  'withdrawal',
+  'transfer_in',
+  'transfer_out',
+  'conversion',
+  'card_payment',
+  'bill_payment',
+]
+
 export type TransactionStatus = 'successful' | 'pending' | 'failed'
+
+export const TRANSACTION_STATUSES: readonly TransactionStatus[] = ['successful', 'pending', 'failed']
 
 export interface Transaction {
   id: string
