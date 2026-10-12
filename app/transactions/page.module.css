@@ -165,14 +165,11 @@ a.step:hover {
   display: none;
 }
 
-@media (max-width: 640px) {
-  .page {
-    gap: var(--space-4);
-  }
-
+/* Below ~860px the fixed-width selects would squeeze the search box, so use the stacked mobile
+   layout: search on its own row, Type and Status side by side. */
+@media (max-width: 860px) {
   .filters {
     grid-template-columns: 1fr 1fr;
-    padding-top: var(--space-2);
   }
 
   .search {
@@ -186,6 +183,16 @@ a.step:hover {
 
   .clearHidden {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .filters {
+    padding-top: var(--space-2);
+  }
+
+  .page {
+    gap: var(--space-4);
   }
 
   .day {

@@ -8,7 +8,6 @@
 .panel {
   position: fixed;
   z-index: 51;
-  outline: none;
   top: 0;
   right: 0;
   bottom: 0;
@@ -18,6 +17,12 @@
   max-width: 100%;
   background: var(--color-surface);
   box-shadow: var(--shadow-overlay);
+}
+
+/* The panel takes focus programmatically so keyboard users start inside it; it is not itself a control. */
+.panel:focus,
+.panel:focus-visible {
+  outline: none;
 }
 
 .header {

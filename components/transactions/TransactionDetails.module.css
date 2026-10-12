@@ -112,3 +112,9 @@
   background: var(--color-bg);
   color: var(--color-text);
 }
+
+@media (max-width: 640px) {
+  .details {
+    gap: var(--space-5);
+  }
+}
