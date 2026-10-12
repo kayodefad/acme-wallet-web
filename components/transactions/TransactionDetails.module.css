@@ -74,7 +74,9 @@
 
 .total {
   padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border-strong);
+  /* Dashed 3px / 2px rule from the design; border-style: dashed leaves dash length to the browser. */
+  background: linear-gradient(to right, var(--color-border-strong) 3px, transparent 3px) top left / 5px 1px
+    repeat-x;
 }
 
 .total dt,
