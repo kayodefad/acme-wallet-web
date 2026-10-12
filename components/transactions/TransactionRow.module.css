@@ -1,77 +1,115 @@
+/* The row adapts to its container, so it fits both the full-width list and narrower cards. */
+.item {
+  container-type: inline-size;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
 .row {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) auto auto;
+  grid-template-columns: 40px minmax(0, 1fr) 112px 176px;
   align-items: center;
   gap: var(--space-4);
   width: 100%;
-  min-height: 68px;
   padding: var(--space-3) var(--space-6);
   border: 0;
-  border-bottom: 1px solid var(--color-border);
   background: none;
+  color: inherit;
   text-align: left;
   cursor: pointer;
-}
-
-.row:last-child {
-  border-bottom: 0;
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .row:hover {
   background: var(--color-bg-subtle);
 }
 
-.icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+.row:focus-visible {
+  outline-offset: -2px;
 }
 
 .main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
   min-width: 0;
 }
 
+.title,
+.narration {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .title {
-  display: block;
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
 }
 
 .narration {
-  display: block;
-  margin-top: var(--space-1);
-  overflow: hidden;
   font-size: var(--text-sm);
+  line-height: var(--leading-normal);
   color: var(--color-text-muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.status {
+  display: flex;
 }
 
 .end {
-  display: block;
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 .amount,
 .credit {
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
+  line-height: var(--leading-normal);
 }
 
 .credit {
   color: var(--color-success);
 }
 
-.meta {
-  display: block;
-  margin-top: var(--space-1);
+.time {
   font-size: var(--text-xs);
+  line-height: var(--leading-normal);
   color: var(--color-text-subtle);
   white-space: nowrap;
+}
+
+.compactStatus {
+  display: none;
+}
+
+/* Mobile layout from the design: smaller avatar, status under the amount, no time. */
+@container (max-width: 560px) {
+  .row {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .status,
+  .time {
+    display: none;
+  }
+
+  .compactStatus {
+    display: flex;
+  }
 }

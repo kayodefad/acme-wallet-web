@@ -34,7 +34,7 @@ export function RecentTransactions() {
       {isLoading && <p className={styles.message}>Loading…</p>}
       {!isLoading && !transactions?.length && <p className={styles.message}>No transactions yet.</p>}
       {transactions?.map((tx) => (
-        <TransactionRow key={tx.id} transaction={tx} onSelect={setSelected} />
+        <TransactionRow key={tx.id} transaction={tx} onSelect={setSelected} showDate />
       ))}
 
       <Drawer open={selected !== null} title="Transaction details" onClose={() => setSelected(null)}>

@@ -1,51 +1,62 @@
-import type { Transaction, TransactionType } from '@/types/api'
-import { Icon, type IconName, Money } from '@/components/ui'
-import { formatDateTime, TRANSACTION_TYPE_LABELS } from '@/lib/format'
-import { StatusDot } from './StatusDot'
+import Link from 'next/link'
+import type { Transaction } from '@/types/api'
+import { Money } from '@/components/ui'
+import { formatDateTime, formatTime, isCredit, TRANSACTION_TYPE_LABELS } from '@/lib/format'
+import { StatusBadge } from './StatusBadge'
+import { TransactionAvatar } from './TransactionAvatar'
 import styles from './TransactionRow.module.css'
-
-const TYPE_ICONS: Record<TransactionType, IconName> = {
-  deposit: 'arrow-down-left',
-  transfer_in: 'arrow-down-left',
-  withdrawal: 'arrow-up-right',
-  transfer_out: 'arrow-up-right',
-  conversion: 'swap',
-  card_payment: 'card',
-  bill_payment: 'receipt',
-}
-
-const CREDIT_TYPES: TransactionType[] = ['deposit', 'transfer_in', 'conversion']
 
 export interface TransactionRowProps {
   transaction: Transaction
+  /** Renders the row as a link (e.g. `?txn=<id>`) so details can be opened in a new tab or shared. */
+  href?: string
   onSelect?: (transaction: Transaction) => void
+  /** Show the full date and time. Off when the row sits under a day heading. */
+  showDate?: boolean
 }
 
-export function TransactionRow({ transaction: tx, onSelect }: TransactionRowProps) {
-  const isCredit = CREDIT_TYPES.includes(tx.type)
+export function TransactionRow({ transaction: tx, href, onSelect, showDate = false }: TransactionRowProps) {
+  const credit = isCredit(tx)
 
-  return (
-    <button type="button" className={styles.row} onClick={() => onSelect?.(tx)}>
-      <span className={styles.icon}>
-        <Icon name={TYPE_ICONS[tx.type]} size={18} />
-      </span>
+  const content = (
+    <>
+      <TransactionAvatar transaction={tx} className={styles.avatar} />
       <span className={styles.main}>
         <span className={styles.title}>{TRANSACTION_TYPE_LABELS[tx.type]}</span>
-        <span className={styles.narration} dangerouslySetInnerHTML={{ __html: tx.narration }} />
+        {/* Plain text: narration comes from upstream providers and is not sanitised (API.md). */}
+        <span className={styles.narration}>{tx.narration}</span>
       </span>
-      <StatusDot status={tx.status} />
+      <span className={styles.status}>
+        <StatusBadge status={tx.status} />
+      </span>
       <span className={styles.end}>
         <Money
           amount={tx.amount}
           currency={tx.currency}
-          sign={isCredit ? 'credit' : 'debit'}
-          className={isCredit ? styles.credit : styles.amount}
+          sign={credit ? 'credit' : 'debit'}
+          className={credit ? styles.credit : styles.amount}
         />
-        <span className={styles.meta}>
-          {formatDateTime(tx.createdAt)}
-          {tx.fee > 0 && ` · Fee ₦${tx.fee}`}
+        <span className={styles.time}>
+          {showDate ? formatDateTime(tx.createdAt) : formatTime(tx.createdAt)}
+        </span>
+        <span className={styles.compactStatus}>
+          <StatusBadge status={tx.status} />
         </span>
       </span>
-    </button>
+    </>
+  )
+
+  return (
+    <div className={styles.item}>
+      {href ? (
+        <Link href={href} scroll={false} className={styles.row} onClick={() => onSelect?.(tx)}>
+          {content}
+        </Link>
+      ) : (
+        <button type="button" className={styles.row} onClick={() => onSelect?.(tx)}>
+          {content}
+        </button>
+      )}
+    </div>
   )
 }
