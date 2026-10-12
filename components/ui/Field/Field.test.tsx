@@ -9,7 +9,15 @@ describe('Field labels', () => {
   })
 
   it('labels a Select, even when the label is visually hidden', () => {
-    render(<Select label="Status" hideLabel options={[{ value: '', label: 'All statuses' }]} />)
+    render(
+      <Select
+        label="Status"
+        hideLabel
+        options={[{ value: '', label: 'All statuses' }]}
+        value=""
+        onValueChange={() => {}}
+      />
+    )
     expect(screen.getByRole('combobox', { name: 'Status' })).toBeInTheDocument()
   })
 })

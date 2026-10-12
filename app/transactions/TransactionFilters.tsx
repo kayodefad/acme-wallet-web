@@ -79,14 +79,14 @@ export function TransactionFilters({ filters, onChange }: TransactionFiltersProp
         label="Type"
         options={TYPE_OPTIONS}
         value={filters.type ?? ''}
-        onChange={(event) => onChange({ type: (event.target.value || null) as Filters['type'] }, 'push')}
+        onValueChange={(value) => onChange({ type: (value || null) as Filters['type'] }, 'push')}
         fieldClassName={styles.type}
       />
       <Select
         label="Status"
         options={STATUS_OPTIONS}
         value={filters.status ?? ''}
-        onChange={(event) => onChange({ status: (event.target.value || null) as Filters['status'] }, 'push')}
+        onValueChange={(value) => onChange({ status: (value || null) as Filters['status'] }, 'push')}
         fieldClassName={styles.status}
       />
       <Button
