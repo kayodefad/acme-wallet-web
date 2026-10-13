@@ -76,6 +76,13 @@ describe('withPatch', () => {
     expect(withPatch(params('__scenario=slow'), { q: 'net' })).toBe('?__scenario=slow&q=net')
   })
 
+  it('drops owned params that were invalid, keeping the URL in line with the screen', () => {
+    expect(withPatch(params('status=reversed&page=-4&q=%20%20'), { page: 2 })).toBe('?page=2')
+    expect(withPatch(params('type=nope&__scenario=slow'), { txn: 'txn_1' })).toBe(
+      '?__scenario=slow&txn=txn_1'
+    )
+  })
+
   it('clears every filter', () => {
     expect(
       withPatch(params('q=ada&type=deposit&status=failed&page=3'), { q: '', type: null, status: null })

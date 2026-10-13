@@ -67,6 +67,14 @@ export function withPatch(current: URLSearchParams, patch: SearchPatch): string 
     else next.set(key, String(value))
   }
 
+  // Drop owned params the page ignored as invalid (e.g. ?status=reversed, ?page=-4), so the URL matches
+  // what's on screen instead of carrying them into every link.
+  const parsed = parseFilters(current)
+  if (parsed.type === null) next.delete(KEYS.type)
+  if (parsed.status === null) next.delete(KEYS.status)
+  if (parsed.page === 1) next.delete(KEYS.page)
+  if (parsed.q === '') next.delete(KEYS.q)
+
   set(KEYS.q, patch.q?.trim())
   set(KEYS.type, patch.type)
   set(KEYS.status, patch.status)
