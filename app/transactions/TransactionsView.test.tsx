@@ -33,12 +33,22 @@ const page = (data: Transaction[], total = data.length) =>
 
 function renderView() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(
+  const tree = () => (
     <QueryClientProvider client={client}>
       <TransactionsView />
     </QueryClientProvider>
   )
+  const result = render(tree())
+  /** Simulates a client-side navigation: the URL changes, the same QueryClient (and its cache) stays. */
+  const navigateTo = (nextSearch: string) => {
+    search = nextSearch
+    result.rerender(tree())
+  }
+  return { ...result, navigateTo }
 }
+
+/** A response that never arrives, to observe the page while the next query is loading. */
+const pending = () => new Promise<Response>(() => {})
 
 beforeEach(() => {
   search = ''
@@ -115,6 +125,36 @@ describe('TransactionsView', () => {
     )
     expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument()
     expect(screen.queryByText('No transactions match your filters')).not.toBeInTheDocument()
+  })
+
+  it('does not show a false empty state while the next query loads after Clear filters', async () => {
+    search = 'q=zzzz'
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(page([]))
+    const { navigateTo } = renderView()
+    expect(await screen.findByText('No transactions match your filters')).toBeInTheDocument()
+
+    fetchSpy.mockImplementation(pending)
+    navigateTo('')
+
+    // The previous query had 0 results; that must not be shown as this (unfiltered) query's answer.
+    expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument()
+    expect(screen.queryByText('0 transactions')).not.toBeInTheDocument()
+    expect(screen.queryByText('0 results')).not.toBeInTheDocument()
+  })
+
+  it('does not redirect based on the previous query while a new page loads', async () => {
+    search = 'type=conversion'
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(page([tx], 30)) // 2 pages
+    const { navigateTo } = renderView()
+    await screen.findByText('Card payment - Netflix')
+
+    fetchSpy.mockImplementation(pending)
+    navigateTo('page=5') // e.g. Back to an uncached URL; its own total is still unknown
+
+    expect(router.replace).not.toHaveBeenCalled()
+    // The previous rows stay visible (dimmed) with their count until the new page arrives.
+    expect(screen.getByText('Card payment - Netflix')).toBeInTheDocument()
+    expect(screen.getByText('30 results')).toBeInTheDocument()
   })
 
   it('shows the not-found state for a shared link to a missing transaction', async () => {

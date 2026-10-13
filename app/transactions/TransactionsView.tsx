@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Transaction } from '@/types/api'
 import { ApiError } from '@/lib/api/client'
 import { Button, Drawer, EmptyState } from '@/components/ui'
@@ -42,7 +42,10 @@ export function TransactionsView() {
     router[history](href(patch), { scroll: false })
 
   const list = useTransactions(toTransactionQuery(filters))
-  const meta = list.data?.meta
+  // While a new query loads, keepPreviousData shows the *previous* query's result. It's fine to keep
+  // displaying those rows (dimmed), but decisions about the current URL (empty, out of range, the count)
+  // must only use data that belongs to it.
+  const meta = list.isPlaceholderData ? undefined : list.data?.meta
 
   // A shared link can point past the last page (e.g. after data changed): go to the last real page.
   useEffect(() => {
@@ -67,8 +70,17 @@ export function TransactionsView() {
 
   const clearFilters = () => navigate({ q: '', type: null, status: null }, 'push')
 
-  let subtitle = ' '
-  if (meta) subtitle = filtered ? plural(meta.total, 'result') : plural(meta.total, 'transaction')
+  // The count describes the rows on screen: the fresh total, or while a new query loads over previous
+  // rows, the last fresh count (it matches the dimmed rows). Blank when there are no rows to describe.
+  const freshSubtitle = meta
+    ? filtered
+      ? plural(meta.total, 'result')
+      : plural(meta.total, 'transaction')
+    : null
+  const [lastSubtitle, setLastSubtitle] = useState('\u00a0')
+  if (freshSubtitle !== null && freshSubtitle !== lastSubtitle) setLastSubtitle(freshSubtitle)
+  const showingPreviousRows = list.isPlaceholderData && (list.data?.data.length ?? 0) > 0
+  const subtitle = freshSubtitle ?? (showingPreviousRows ? lastSubtitle : '\u00a0')
 
   // The account has transactions but the URL asks for a page past the end; the effect above is about to
   // redirect. Show loading meanwhile: an empty state here would be false.
@@ -77,7 +89,8 @@ export function TransactionsView() {
   let content
   if (outOfRange) {
     content = <TransactionListSkeleton />
-  } else if (list.data && list.data.data.length > 0 && meta) {
+  } else if (list.data && list.data.data.length > 0) {
+    const pageMeta = list.data.meta ?? { page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 }
     content = (
       <>
         <TransactionList
@@ -86,11 +99,11 @@ export function TransactionsView() {
           onSelect={openDetails}
           isUpdating={list.isPlaceholderData}
         />
-        {meta.totalPages > 1 && (
+        {pageMeta.totalPages > 1 && (
           <Pagination
-            page={Math.min(filters.page, meta.totalPages)}
-            totalPages={meta.totalPages}
-            total={meta.total}
+            page={Math.min(filters.page, pageMeta.totalPages)}
+            totalPages={pageMeta.totalPages}
+            total={pageMeta.total}
             pageSize={PAGE_SIZE}
             hrefFor={(page) => href({ page })}
           />
@@ -98,7 +111,8 @@ export function TransactionsView() {
       </>
     )
   } else if (meta?.total === 0) {
-    // Decided from the total, not from "this page has no rows", so only a truly empty result says so.
+    // Decided from this URL's own total, never from "this page has no rows" or from the previous
+    // query's placeholder, so only a truly empty result says so.
     content = <TransactionListEmpty filtered={filtered} onClear={clearFilters} />
   } else if (list.isError) {
     content = <TransactionListError onRetry={() => list.refetch()} />
