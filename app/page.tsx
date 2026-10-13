@@ -1,33 +1,45 @@
 'use client'
-import { useEffect, useState } from 'react'
-import type { User } from '@/types/api'
 import { BalanceSummary, RatesWidget, RecentTransactions, WalletCard } from '@/components/dashboard'
-import { getMe } from '@/lib/api/endpoints'
+import { Button, Card, EmptyState } from '@/components/ui'
+import { useMe } from '@/lib/api/use-me'
 import styles from './page.module.css'
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User>()
-  const [isLoading, setIsLoading] = useState(true)
+  const me = useMe()
 
-  useEffect(() => {
-    getMe()
-      .then((res) => setUser(res.data))
-      .finally(() => setIsLoading(false))
-  }, [])
-
-  if (isLoading) return <p className={styles.loading}>Loading…</p>
+  if (me.isPending) return <p className={styles.loading}>Loading…</p>
+  if (me.isError) {
+    return (
+      <Card padding="none">
+        <div role="alert">
+          <EmptyState
+            tone="danger"
+            icon="alert"
+            title="We couldn’t load your dashboard"
+            description="Check your connection and try again."
+            action={
+              <Button iconLeft="refresh" onClick={() => me.refetch()}>
+                Try again
+              </Button>
+            }
+          />
+        </div>
+      </Card>
+    )
+  }
+  const user = me.data
 
   return (
     <div className={styles.page}>
       <header>
-        <h1 className={styles.title}>Welcome back, {user!.firstName}</h1>
+        <h1 className={styles.title}>Welcome back, {user.firstName}</h1>
         <p className={styles.subtitle}>Here&apos;s what&apos;s happening with your money today.</p>
       </header>
 
-      <BalanceSummary wallets={user!.wallets} />
+      <BalanceSummary wallets={user.wallets} />
 
       <div className={styles.wallets}>
-        {user!.wallets.map((wallet) => (
+        {user.wallets.map((wallet) => (
           <WalletCard key={wallet.currency} wallet={wallet} />
         ))}
       </div>

@@ -1,9 +1,11 @@
 'use client'
-import { useEffect, useState } from 'react'
-import type { Conversion, Currency, Rate, User } from '@/types/api'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import type { Conversion, Currency } from '@/types/api'
 import { CURRENCIES } from '@/types/api'
 import { Button, Card, Input, Money, Select } from '@/components/ui'
-import { convert, getMe, getRate } from '@/lib/api/endpoints'
+import { convert, getRate } from '@/lib/api/endpoints'
+import { meQueryKey, useMe } from '@/lib/api/use-me'
 import { parseMoney } from '@/lib/format'
 import styles from './page.module.css'
 
@@ -17,16 +19,13 @@ export default function ConvertPage() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const [user, setUser] = useState<User>()
-  const [rate, setRate] = useState<Rate>()
-
-  useEffect(() => {
-    getMe().then((res) => setUser(res.data))
-  }, [])
-
-  useEffect(() => {
-    getRate(from, to).then((res) => setRate(res.data))
-  }, [from, to])
+  const queryClient = useQueryClient()
+  const { data: user } = useMe()
+  const rateQuery = useQuery({
+    queryKey: ['rates', from, to],
+    queryFn: ({ signal }) => getRate(from, to, { signal }).then((res) => res.data),
+  })
+  const rate = rateQuery.data
 
   const value = parseMoney(amount, from) ?? 0
   const fee = Math.round(value * 0.015)
@@ -43,6 +42,9 @@ export default function ConvertPage() {
       const res = await convert({ from, to, amount: value })
       setResult(res.data)
       setAmount('')
+      // Balances and history changed on the server; refetch them wherever they're shown.
+      void queryClient.invalidateQueries({ queryKey: meQueryKey })
+      void queryClient.invalidateQueries({ queryKey: ['transactions'] })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     } finally {
@@ -94,7 +96,7 @@ export default function ConvertPage() {
         <dl className={styles.summary}>
           <div className={styles.summaryRow}>
             <dt>Rate</dt>
-            <dd>{rate ? `1 ${from} = ${rate.rate} ${to}` : '…'}</dd>
+            <dd>{rate ? `1 ${from} = ${rate.rate} ${to}` : rateQuery.isError ? 'Unavailable' : '…'}</dd>
           </div>
           <div className={styles.summaryRow}>
             <dt>Fee (1.5%)</dt>

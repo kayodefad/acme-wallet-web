@@ -1,6 +1,6 @@
 'use client'
-import { useEffect, useState } from 'react'
-import type { Currency, Rate } from '@/types/api'
+import { useQuery } from '@tanstack/react-query'
+import type { Currency } from '@/types/api'
 import { Card, CardHeader } from '@/components/ui'
 import { getRate } from '@/lib/api/endpoints'
 import { formatTime } from '@/lib/format'
@@ -9,13 +9,12 @@ import styles from './RatesWidget.module.css'
 const QUOTES: Currency[] = ['USD', 'GHS']
 
 export function RatesWidget({ base }: { base: Currency }) {
-  const [rates, setRates] = useState<Rate[]>()
-
-  useEffect(() => {
-    Promise.all(QUOTES.map((quote) => getRate(quote, base))).then((results) =>
-      setRates(results.map((res) => res.data))
-    )
-  }, [base])
+  const query = useQuery({
+    queryKey: ['rates', QUOTES, base],
+    queryFn: ({ signal }) =>
+      Promise.all(QUOTES.map((quote) => getRate(quote, base, { signal }).then((res) => res.data))),
+  })
+  const rates = query.data
   const updatedAt = rates?.[0]?.updatedAt
 
   return (
@@ -33,6 +32,11 @@ export function RatesWidget({ base }: { base: Currency }) {
         })}
       </dl>
       {updatedAt && <p className={styles.updated}>Updated {formatTime(updatedAt)}</p>}
+      {query.isError && (
+        <p className={styles.updated} role="alert">
+          Rates are unavailable right now.
+        </p>
+      )}
     </Card>
   )
 }

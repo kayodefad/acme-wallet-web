@@ -1,22 +1,21 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import type { Transaction } from '@/types/api'
-import { Card, CardHeader, Drawer } from '@/components/ui'
+import { Button, Card, CardHeader, Drawer } from '@/components/ui'
 import { TransactionDetails, TransactionRow } from '@/components/transactions'
 import { getTransactions } from '@/lib/api/endpoints'
 import styles from './RecentTransactions.module.css'
 
 export function RecentTransactions() {
   const [selected, setSelected] = useState<Transaction | null>(null)
-  const [transactions, setTransactions] = useState<Transaction[]>()
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    getTransactions({ limit: 5 })
-      .then((res) => setTransactions(res.data))
-      .finally(() => setIsLoading(false))
-  }, [])
+  // Same key shape as the Transactions page (['transactions', 'list', query]), so details can reuse it.
+  const recent = useQuery({
+    queryKey: ['transactions', 'list', { limit: 5 }],
+    queryFn: ({ signal }) => getTransactions({ limit: 5 }, { signal }),
+  })
+  const transactions = recent.data?.data
 
   return (
     <Card padding="none">
@@ -30,8 +29,16 @@ export function RecentTransactions() {
           }
         />
       </div>
-      {isLoading && <p className={styles.message}>Loading…</p>}
-      {!isLoading && !transactions?.length && <p className={styles.message}>No transactions yet.</p>}
+      {recent.isPending && <p className={styles.message}>Loading…</p>}
+      {recent.isError && (
+        <div role="alert" className={styles.message}>
+          We couldn’t load your recent transactions.{' '}
+          <Button variant="ghost" size="sm" onClick={() => recent.refetch()}>
+            Try again
+          </Button>
+        </div>
+      )}
+      {recent.isSuccess && !transactions?.length && <p className={styles.message}>No transactions yet.</p>}
       {transactions?.map((tx) => (
         <TransactionRow key={tx.id} transaction={tx} onSelect={setSelected} showDate />
       ))}

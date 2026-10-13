@@ -1,9 +1,8 @@
 'use client'
-import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { User } from '@/types/api'
 import { Avatar, Icon } from '@/components/ui'
-import { getMe } from '@/lib/api/endpoints'
+import { useMe } from '@/lib/api/use-me'
 import styles from './UserMenu.module.css'
 
 const TIER_LABELS: Record<User['tier'], string> = {
@@ -15,10 +14,7 @@ const TIER_LABELS: Record<User['tier'], string> = {
 export function UserMenu() {
   const [open, setOpen] = useState(false)
   // A failed request leaves the menu without a name instead of an unhandled rejection.
-  const { data: user } = useQuery({
-    queryKey: ['me'],
-    queryFn: ({ signal }) => getMe({ signal }).then((res) => res.data),
-  })
+  const { data: user } = useMe()
 
   return (
     <div className={styles.menu}>
