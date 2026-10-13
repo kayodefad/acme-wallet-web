@@ -157,6 +157,23 @@ describe('TransactionsView', () => {
     expect(screen.getByText('30 results')).toBeInTheDocument()
   })
 
+  it('closing details opened from the list goes Back (pops the entry it pushed)', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) =>
+      String(input).includes('/transactions/txn_1') ? json(200, { data: tx }) : page([tx])
+    )
+    const { navigateTo } = renderView()
+
+    const row = await screen.findByRole('link', { name: /Card payment - Netflix/ })
+    row.addEventListener('click', (event) => event.preventDefault()) // no real navigation in jsdom
+    await userEvent.click(row)
+    navigateTo('txn=txn_1') // the URL the row links to
+
+    await screen.findByRole('dialog', { name: 'Transaction details' })
+    await userEvent.keyboard('{Escape}')
+    expect(router.back).toHaveBeenCalledTimes(1)
+    expect(router.replace).not.toHaveBeenCalled()
+  })
+
   it('shows the not-found state for a shared link to a missing transaction', async () => {
     search = 'txn=txn_missing'
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) =>
