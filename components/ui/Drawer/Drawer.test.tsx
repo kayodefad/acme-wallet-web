@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { vi } from 'vitest'
 import { Drawer } from './Drawer'
 
@@ -63,5 +63,25 @@ describe('Drawer', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Open' }))
     await userEvent.keyboard('{Escape}')
     expect(screen.getByRole('button', { name: 'Open' })).toHaveFocus()
+  })
+
+  it('falls back to returnFocusRef when nothing had focus before opening', async () => {
+    function Harness() {
+      const [open, setOpen] = useState(true) // open on load, like a shared link
+      const headingRef = useRef<HTMLHeadingElement>(null)
+      return (
+        <>
+          <h1 ref={headingRef} tabIndex={-1}>
+            Transactions
+          </h1>
+          <Drawer open={open} title="Details" onClose={() => setOpen(false)} returnFocusRef={headingRef}>
+            body
+          </Drawer>
+        </>
+      )
+    }
+    render(<Harness />)
+    await userEvent.keyboard('{Escape}')
+    expect(screen.getByRole('heading', { name: 'Transactions' })).toHaveFocus()
   })
 })

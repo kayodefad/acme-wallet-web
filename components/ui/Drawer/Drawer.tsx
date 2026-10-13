@@ -1,5 +1,13 @@
 'use client'
-import { useEffect, useEffectEvent, useId, useRef, type KeyboardEvent, type ReactNode } from 'react'
+import {
+  useEffect,
+  useEffectEvent,
+  useId,
+  useRef,
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import { Icon } from '../Icon'
 import styles from './Drawer.module.css'
 
@@ -12,20 +20,27 @@ export interface DrawerProps {
   onClose: () => void
   children: ReactNode
   footer?: ReactNode
+  /**
+   * Where focus goes on close when the element that had focus before opening is gone or was never there
+   * (e.g. the drawer opened on page load from a shared link). Should be focusable (tabIndex={-1}).
+   */
+  returnFocusRef?: RefObject<HTMLElement | null>
 }
 
 /**
  * Modal side panel (a bottom sheet on small screens). Moves focus into the panel, keeps Tab inside it,
  * closes on Escape, the close button or a click on the overlay, and returns focus on close.
  */
-export function Drawer({ open, title, onClose, children, footer }: DrawerProps) {
+export function Drawer({ open, title, onClose, children, footer, returnFocusRef }: DrawerProps) {
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
   const handleEscape = useEffectEvent(onClose)
+  const fallbackFocus = useEffectEvent(() => returnFocusRef?.current?.focus())
 
   useEffect(() => {
     if (!open) return
-    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const active = document.activeElement
+    const previouslyFocused = active instanceof HTMLElement && active !== document.body ? active : null
     panelRef.current?.focus()
 
     const { overflow } = document.body.style
@@ -39,7 +54,8 @@ export function Drawer({ open, title, onClose, children, footer }: DrawerProps) 
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = overflow
-      previouslyFocused?.focus()
+      if (previouslyFocused?.isConnected) previouslyFocused.focus()
+      else fallbackFocus()
     }
   }, [open])
 

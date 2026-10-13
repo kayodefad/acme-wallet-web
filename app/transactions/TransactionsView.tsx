@@ -59,6 +59,7 @@ export function TransactionsView() {
   // Details opened from the list pushed a history entry, so closing goes Back to the list. Opened from a
   // shared link or after a refresh, there is no list entry to go back to, so closing replaces the URL.
   const openedFromList = useRef(false)
+  const headingRef = useRef<HTMLHeadingElement>(null)
   const openDetails = () => {
     openedFromList.current = true
   }
@@ -123,7 +124,9 @@ export function TransactionsView() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Transactions</h1>
+        <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
+          Transactions
+        </h1>
         <p className={styles.subtitle} aria-live="polite">
           {subtitle}
         </p>
@@ -133,7 +136,12 @@ export function TransactionsView() {
 
       {content}
 
-      <Drawer open={selectedId !== null} title="Transaction details" onClose={closeDetails}>
+      <Drawer
+        open={selectedId !== null}
+        title="Transaction details"
+        onClose={closeDetails}
+        returnFocusRef={headingRef}
+      >
         {selectedId && <DetailsBody id={selectedId} onBack={closeDetails} />}
       </Drawer>
     </div>
