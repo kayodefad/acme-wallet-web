@@ -86,7 +86,7 @@ export function TransactionsPageSkeleton() {
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Transactions</h1>
-        <p className={styles.subtitle}>{' '}</p>
+        <p className={styles.subtitle}>{'\u00a0'}</p>
       </header>
       <div className={styles.filters} aria-hidden="true">
         {field('Search', styles.search)}

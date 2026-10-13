@@ -165,6 +165,9 @@ test.describe('Transactions page', () => {
 test.describe('Transactions page states', () => {
   test('loading skeleton on first load', async ({ page }) => {
     await page.goto('/transactions?__scenario=slow')
+    // The real search box only exists once the client view has mounted (the server fallback has
+    // placeholders), so this checks the view's own skeleton, not the static shell's.
+    await expect(search(page)).toBeVisible()
     await expect(page.locator('[aria-busy="true"]').first()).toBeVisible()
     await expect(rows(page)).toHaveCount(20, { timeout: 10_000 })
   })
