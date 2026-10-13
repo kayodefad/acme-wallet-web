@@ -33,22 +33,35 @@ export function TransactionFilters({ filters, onChange }: TransactionFiltersProp
 
   // The input is local so typing stays instant; the URL catches up after the debounce.
   const [input, setInput] = useState(filters.q)
-  const [syncedQ, setSyncedQ] = useState(filters.q)
   const [sentQ, setSentQ] = useState<string | null>(null)
 
-  // The URL changed (Back, a shared link, Clear filters): show its value, unless it is the value we just
-  // sent, in which case the user may have kept typing and their newer input wins.
-  if (filters.q !== syncedQ) {
-    setSyncedQ(filters.q)
-    if (filters.q !== sentQ) setInput(filters.q)
+  // Starting a search pushes one history entry, so Back returns to the unfiltered list; later keystrokes
+  // replace it, so Back doesn't replay "a", "ad", "ada".
+  const commitSearch = useDebouncedCallback((value: string) => {
+    setSentQ(value.trim())
+    onChange({ q: value }, filters.q === '' ? 'push' : 'replace')
+  }, SEARCH_DEBOUNCE_MS)
+
+  // The URL changed. If it's the search we just sent, keep the input as is: the user may have typed more
+  // since. Anything else (Back/Forward, a shared link, Clear filters) wins: show its search value and drop
+  // a pending debounced search, which would otherwise overwrite the entry the user navigated to.
+  const urlKey = `${filters.q}|${filters.type}|${filters.status}|${filters.page}`
+  const [syncedKey, setSyncedKey] = useState(urlKey)
+  if (urlKey !== syncedKey) {
+    setSyncedKey(urlKey)
+    if (sentQ === null || filters.q !== sentQ) {
+      commitSearch.cancel()
+      setInput(filters.q)
+    }
     setSentQ(null)
   }
 
-  // Replace, not push: Back should leave the search, not replay every keystroke.
-  const commitSearch = useDebouncedCallback((value: string) => {
-    setSentQ(value.trim())
-    onChange({ q: value }, 'replace')
-  }, SEARCH_DEBOUNCE_MS)
+  // A dropdown change commits any pending search text with it, so neither change is lost.
+  const changeFilter = (patch: Pick<SearchPatch, 'type' | 'status'>) => {
+    commitSearch.cancel()
+    setSentQ(input.trim())
+    onChange({ ...patch, q: input }, 'push')
+  }
 
   const canClear = filters.q !== '' || filters.type !== null || filters.status !== null || input.trim() !== ''
 
@@ -79,14 +92,14 @@ export function TransactionFilters({ filters, onChange }: TransactionFiltersProp
         label="Type"
         options={TYPE_OPTIONS}
         value={filters.type ?? ''}
-        onValueChange={(value) => onChange({ type: (value || null) as Filters['type'] }, 'push')}
+        onValueChange={(value) => changeFilter({ type: (value || null) as Filters['type'] })}
         fieldClassName={styles.type}
       />
       <Select
         label="Status"
         options={STATUS_OPTIONS}
         value={filters.status ?? ''}
-        onValueChange={(value) => onChange({ status: (value || null) as Filters['status'] }, 'push')}
+        onValueChange={(value) => changeFilter({ status: (value || null) as Filters['status'] })}
         fieldClassName={styles.status}
       />
       <Button

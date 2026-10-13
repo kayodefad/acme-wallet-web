@@ -44,12 +44,18 @@ test.describe('Transactions page', () => {
     await expect(search(page)).toHaveValue('ada')
   })
 
-  test('typing replaces history, so Back leaves the search in one step', async ({ page }) => {
+  test('a search adds one history entry; refining it replaces that entry', async ({ page }) => {
     await page.goto('/transactions?page=2')
     await page.goto('/transactions')
-    await search(page).pressSequentially('kwame', { delay: 120 })
-    await expect(page).toHaveURL(/\?q=kwame$/)
 
+    await search(page).fill('kw')
+    await expect(page).toHaveURL(/\?q=kw$/) // starting a search pushes
+    await search(page).fill('kwame')
+    await expect(page).toHaveURL(/\?q=kwame$/) // refining replaces
+
+    await page.goBack()
+    await expect(page).toHaveURL(/\/transactions$/) // back to the unfiltered list, not "kw"
+    await expect(search(page)).toHaveValue('')
     await page.goBack()
     await expect(page).toHaveURL(/\?page=2$/)
   })
