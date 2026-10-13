@@ -8,7 +8,9 @@ export default function DashboardPage() {
   const me = useMe()
 
   if (me.isPending) return <p className={styles.loading}>Loading…</p>
-  if (me.isError) {
+  // Only when there's nothing to show: a failed background refetch keeps the cached user (v5 keeps
+  // `data` with status 'error'), and replacing a working dashboard with an error card would be worse.
+  if (!me.data) {
     return (
       <Card padding="none">
         <div role="alert">

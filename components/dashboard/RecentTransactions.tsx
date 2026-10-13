@@ -30,7 +30,7 @@ export function RecentTransactions() {
         />
       </div>
       {recent.isPending && <p className={styles.message}>Loading…</p>}
-      {recent.isError && (
+      {recent.isError && !transactions && (
         <div role="alert" className={styles.message}>
           We couldn’t load your recent transactions.{' '}
           <Button variant="ghost" size="sm" onClick={() => recent.refetch()}>
