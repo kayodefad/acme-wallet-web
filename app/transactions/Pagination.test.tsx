@@ -1,4 +1,5 @@
-import { pageItems } from './Pagination'
+import { render, screen } from '@testing-library/react'
+import { pageItems, Pagination } from './Pagination'
 
 describe('pageItems', () => {
   it('matches the design on the first page', () => {
@@ -17,5 +18,15 @@ describe('pageItems', () => {
     expect(pageItems(12, 12)).toEqual([1, 'gap', 10, 11, 12])
     expect(pageItems(1, 1)).toEqual([1])
     expect(pageItems(2, 3)).toEqual([1, 2, 3])
+  })
+})
+
+describe('Pagination', () => {
+  it('announces disabled steps and marks the current page', () => {
+    render(<Pagination page={1} totalPages={12} total={237} pageSize={20} hrefFor={(p) => `?page=${p}`} />)
+
+    expect(screen.getByRole('link', { name: 'Previous page' })).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByRole('link', { name: 'Next page' })).toHaveAttribute('href', '?page=2')
+    expect(screen.getByRole('link', { name: 'Page 1' })).toHaveAttribute('aria-current', 'page')
   })
 })

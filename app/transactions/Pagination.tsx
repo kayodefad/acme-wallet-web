@@ -58,7 +58,14 @@ function StepLink({
 
   if (!enabled) {
     return (
-      <span className={cx(styles.step, styles.stepDisabled)} aria-disabled="true" aria-label={label}>
+      // A link with no href, so it can't be activated; role + aria-disabled let screen readers announce
+      // "Previous page, disabled" (a name on a plain span is ignored).
+      <span
+        className={cx(styles.step, styles.stepDisabled)}
+        role="link"
+        aria-disabled="true"
+        aria-label={label}
+      >
         {content}
       </span>
     )
