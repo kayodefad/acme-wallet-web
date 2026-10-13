@@ -91,9 +91,13 @@ export function TransactionDetails({ transaction: tx }: { transaction: Transacti
           <Row label="Fee">
             <Money amount={tx.fee} currency={tx.currency} />
           </Row>
-          {/* API.md: the fee is charged on top of the amount, in the same currency. */}
+          {/*
+            Money out: the fee is charged on top (API.md), so the total that left the wallet is amount + fee.
+            Money in: the amount is what arrived. For a conversion the fee was paid in the source currency
+            (it's shown converted at the same rate), so adding it would describe money that never moved.
+          */}
           <Row label="Total" total>
-            <Money amount={tx.amount + tx.fee} currency={tx.currency} />
+            <Money amount={credit ? tx.amount : tx.amount + tx.fee} currency={tx.currency} />
           </Row>
         </dl>
       </section>
