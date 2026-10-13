@@ -69,6 +69,35 @@ export function TransactionListSkeleton() {
   )
 }
 
+/**
+ * Server-rendered stand-in for the whole page while the client view (which reads the URL) starts up:
+ * the real header and filter layout with placeholder controls, plus the list skeleton. Avoids a blank
+ * main area on first load.
+ */
+export function TransactionsPageSkeleton() {
+  const field = (label: string, className: string) => (
+    <div className={className}>
+      <span className={styles.fallbackLabel}>{label}</span>
+      <Skeleton height={40} className={styles.fallbackControl} />
+    </div>
+  )
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Transactions</h1>
+        <p className={styles.subtitle}>{' '}</p>
+      </header>
+      <div className={styles.filters} aria-hidden="true">
+        {field('Search', styles.search)}
+        {field('Type', styles.type)}
+        {field('Status', styles.status)}
+      </div>
+      <TransactionListSkeleton />
+    </div>
+  )
+}
+
 export function TransactionListError({ onRetry }: { onRetry: () => void }) {
   return (
     <Card padding="none">
