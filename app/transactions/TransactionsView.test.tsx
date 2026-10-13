@@ -103,6 +103,20 @@ describe('TransactionsView', () => {
     expect(router.push).toHaveBeenCalledWith('/transactions', { scroll: false })
   })
 
+  it('redirects a page past the end to the last page without showing an empty state', async () => {
+    search = 'page=99'
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      json(200, { data: [], meta: { page: 99, limit: 20, total: 237, totalPages: 12 } })
+    )
+    renderView()
+
+    await vi.waitFor(() =>
+      expect(router.replace).toHaveBeenCalledWith('/transactions?page=12', { scroll: false })
+    )
+    expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument()
+    expect(screen.queryByText('No transactions match your filters')).not.toBeInTheDocument()
+  })
+
   it('shows the not-found state for a shared link to a missing transaction', async () => {
     search = 'txn=txn_missing'
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) =>

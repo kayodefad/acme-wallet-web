@@ -70,8 +70,14 @@ export function TransactionsView() {
   let subtitle = ' '
   if (meta) subtitle = filtered ? plural(meta.total, 'result') : plural(meta.total, 'transaction')
 
+  // The account has transactions but the URL asks for a page past the end; the effect above is about to
+  // redirect. Show loading meanwhile: an empty state here would be false.
+  const outOfRange = meta !== undefined && meta.total > 0 && filters.page > meta.totalPages
+
   let content
-  if (list.data && list.data.data.length > 0 && meta) {
+  if (outOfRange) {
+    content = <TransactionListSkeleton />
+  } else if (list.data && list.data.data.length > 0 && meta) {
     content = (
       <>
         <TransactionList
@@ -91,7 +97,8 @@ export function TransactionsView() {
         )}
       </>
     )
-  } else if (list.data) {
+  } else if (meta?.total === 0) {
+    // Decided from the total, not from "this page has no rows", so only a truly empty result says so.
     content = <TransactionListEmpty filtered={filtered} onClear={clearFilters} />
   } else if (list.isError) {
     content = <TransactionListError onRetry={() => list.refetch()} />
