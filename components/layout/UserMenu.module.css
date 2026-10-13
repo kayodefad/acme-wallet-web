@@ -54,3 +54,15 @@
     display: none;
   }
 }
+
+/* The mobile design shows only the avatar; keep the name for screen readers. */
+@media (max-width: 640px) {
+  .name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}

@@ -7,6 +7,7 @@
 
 .panel {
   position: fixed;
+  z-index: 51;
   top: 0;
   right: 0;
   bottom: 0;
@@ -16,6 +17,12 @@
   max-width: 100%;
   background: var(--color-surface);
   box-shadow: var(--shadow-overlay);
+}
+
+/* The panel takes focus programmatically so keyboard users start inside it; it is not itself a control. */
+.panel:focus,
+.panel:focus-visible {
+  outline: none;
 }
 
 .header {
@@ -34,6 +41,9 @@
 
 .close {
   display: inline-flex;
+  flex-shrink: 0;
+  border: 0;
+  background: none;
   align-items: center;
   justify-content: center;
   width: 32px;
@@ -45,6 +55,11 @@
 
 .close:hover {
   background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.grabber {
+  display: none;
 }
 
 .body {
@@ -65,5 +80,23 @@
     width: 100%;
     max-height: 90vh;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .grabber {
+    display: block;
+    flex-shrink: 0;
+    width: 36px;
+    height: 4px;
+    margin: var(--space-2) auto 0;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+  }
+
+  .header {
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .body {
+    padding: var(--space-5);
   }
 }

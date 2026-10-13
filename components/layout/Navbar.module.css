@@ -48,12 +48,57 @@
   font-weight: var(--weight-semibold);
 }
 
+.user {
+  margin-left: auto;
+}
+
+/* Small screens: links move to a second row under the logo, as in the mobile design. */
 @media (max-width: 640px) {
-  .links {
-    display: none;
+  .inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'logo user'
+      'links links';
+    height: auto;
+    padding: 0;
+    gap: 0;
   }
 
-  .inner {
-    justify-content: space-between;
+  .logo {
+    grid-area: logo;
+    padding-left: var(--layout-gutter);
+    line-height: var(--navbar-height);
+  }
+
+  .user {
+    grid-area: user;
+    align-self: center;
+    padding-right: var(--layout-gutter);
+  }
+
+  .links {
+    grid-area: links;
+    gap: var(--space-6);
+    height: 44px;
+    padding: 0 var(--layout-gutter);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .link {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .active::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-primary);
   }
 }

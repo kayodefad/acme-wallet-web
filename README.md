@@ -24,6 +24,7 @@ The backend is mocked inside this app. See [API.md](./API.md).
 | `npm run lint`         | ESLint                          |
 | `npm run typecheck`    | `tsc --noEmit`                  |
 | `npm test`             | Vitest (unit + component tests) |
+| `npm run test:e2e`     | Playwright end-to-end tests     |
 | `npm run format`       | Prettier                        |
 | `npm run format:check` | Prettier, check only            |
 
